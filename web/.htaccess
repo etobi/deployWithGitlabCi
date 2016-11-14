@@ -1,0 +1,85 @@
+<FilesMatch "\.gz\.(js|css)">
+	<IfModule mod_headers.c>
+		Header set Content-Encoding gzip
+	</IfModule>
+</FilesMatch>
+
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE application/x-font-ttf
+AddOutputFilterByType DEFLATE application/font-woff
+AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+AddOutputFilterByType DEFLATE application/x-font-otf
+</IfModule>
+
+<IfModule mod_expires.c>
+  Header set cache-control: public
+  ExpiresActive on
+
+  ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
+  ExpiresByType application/x-font-ttf "access plus 1 month"
+  ExpiresByType application/x-font-opentype "access plus 1 month"
+  ExpiresByType application/x-font-woff "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+
+  ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  <FilesMatch "\.(ttf|otf|eot|svg)$" >
+    SetOutputFilter DEFLATE
+  </FilesMatch>
+</IfModule>
+
+AddType application/x-font-ttf           ttc ttf
+AddType application/x-font-otf           otf
+AddType application/font-woff            woff
+AddType application/font-woff2           woff2
+AddType application/vnd.ms-fontobject    eot
+
+RewriteEngine On
+RewriteBase /
+
+# maintenance
+# RewriteCond %{REMOTE_ADDR} !^123\.456\.789\.000
+RewriteCond %{DOCUMENT_ROOT}/maintenance.enable -f
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+RewriteRule ^.*$ /maintenance.html [R=503,L]
+ErrorDocument 503 /maintenance.html
+# Header Set Cache-Control "max-age=0, no-store"
+# /maintenance
+
+
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+
+### CUSTOM REDIRECTS ###
+
+RewriteRule ^sitemap_googlenews.xml$ /typo3temp/sitemap_googlenews.xml [L]
+RewriteRule ^sitemap.xml$ /typo3temp/sitemap.xml [L]
+
+RewriteCond %{QUERY_STRING} ^$
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)\.(\d+)\.(php|js|css|png|jpg|gif|gzip)$ $1.$3 [L]
+
+RewriteRule ^(typo3|t3lib|tslib|fileadmin|typo3conf|typo3temp|uploads|showpic\.php|favicon\.ico)/ - [L]
+RewriteRule ^typo3$ typo3/index_re.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-l
+
+RewriteRule .* index.php [L]

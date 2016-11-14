@@ -1,0 +1,114 @@
+image: php:7.0
+
+before_script:
+  - apt-get update -yqq > /dev/null 2>&1
+  # install git, unzip, composer
+  - apt-get install git unzip rsync openssh-client -yqq > /dev/null 2>&1
+
+  # run ssh-agent
+  - eval $(ssh-agent -s)
+
+  # add ssh key stored in SSH_PRIVATE_KEY variable to the agent store
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+
+  # disable host key checking (NOTE: makes you susceptible to man-in-the-middle attacks)
+  # WARNING: use only in docker container, if you use it with shell you will overwrite your user's ssh config
+  - mkdir -p ~/.ssh
+  - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+build:
+  stage: build
+  only:
+    - develop
+    - master
+    - system/*
+  script:
+    - ./Build/bin/composer.phar install --no-ansi --no-progress --no-dev
+
+
+.deploy template: &deploy_template
+  stage: deploy
+  environment:
+    name:
+    url:
+  only:
+    - trigger
+  when: manual
+  script:
+    # setup
+    - export TARGETPATH="${TARGETBASEPATH}release/"
+    - echo "Host    " $TARGETHOST
+    - echo "Path    " $TARGETPATH
+    - echo "prepare ... "
+    # install deps with composer
+    - ./Build/bin/composer.phar install --no-ansi --no-progress --no-dev
+    - date > VERSION
+    - echo "Tag   ${CI_BUILD_TAG}" >> VERSION
+    - echo "Build ${CI_BUILD_ID}" >> VERSION
+    - echo "Ref   ${CI_BUILD_REF}" >> VERSION
+    - echo "Name  ${CI_BUILD_NAME}" >> VERSION
+    - echo "git   $(git describe)" >> VERSION
+    # prepare target host
+    - ssh $TARGETHOST "mkdir -p $TARGETPATH"
+    # - enable maintenance page
+    - touch web/maintenance.enable
+    - ssh $TARGETHOST "cd ${TARGETPATH}; mkdir -p ${TARGETPATH}web/; touch web/maintenance.enable"
+    # sync files
+    - rsync -azv -e "ssh" --delete
+      --exclude=/composer.*
+      --exclude=/fileadmin
+      --exclude=/typo3temp
+      --exclude=/uploads
+      --exclude=/Build
+      --exclude=/README.md
+      --exclude=/.ssh
+      --exclude=.settings
+      ./ $TARGETHOST:$TARGETPATH
+    # finish build on target
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L fileadmin || ln -s ${TARGETBASEPATH}fileadmin"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L typo3temp || ln -s ${TARGETBASEPATH}typo3temp"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L uploads || ln -s ${TARGETBASEPATH}uploads"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms install:fixfolderstructure"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms cache:flush --force"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms database:updateschema '*.add,*.change' --verbose"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms migration:migrateAll"
+    # finish/cleanup releases
+    - echo "cleanup ... "
+    - ssh $TARGETHOST "cd ${TARGETPATH}; rm web/maintenance.enable"
+    - echo "done."
+
+deploy to live:
+  <<: *deploy_template
+  only:
+    - system/live
+  variables:
+    TARGETHOST: "deploy@live.example.com"
+    TARGETBASEPATH: "/pub.local/www.example.com/"
+  environment:
+    name: live
+    url: https://www.example.com
+
+deploy to staging:
+  <<: *deploy_template
+  only:
+    - system/staging
+  variables:
+    TARGETHOST: "deploy@staging.example.com"
+    TARGETBASEPATH: "/pub.local/staging.example.com/"
+  environment:
+    name: staging
+    url: https://staging.example.com
+
+deploy to testing:
+  <<: *deploy_template
+  only:
+    - develop
+  when: on_success
+  variables:
+    TARGETHOST: "deploy@testing.example.com"
+    TARGETBASEPATH: "/pub.local/testing.example.com/"
+  environment:
+    name: testing
+    url: https://testing.example.com
+
+

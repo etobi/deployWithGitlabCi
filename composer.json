@@ -1,0 +1,77 @@
+{
+  "name": "etobi/example.com",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://composer.typo3.org/"
+    },
+    {
+        "type": "git",
+        "url": "https://github.com/etobi/typo3-migrator.git"
+    }
+  ],
+  "require": {
+    "typo3/cms": "^7.6",
+    "typo3/cms-core": "^7.6",
+    "typo3/cms-extbase": "^7.6",
+    "typo3/cms-fluid": "^7.6",
+    "typo3/cms-lang": "^7.6",
+    "typo3/cms-setup": "^7.6",
+    "typo3/cms-rtehtmlarea": "^7.6",
+    "typo3/cms-rsaauth": "^7.6",
+    "typo3/cms-saltedpasswords": "^7.6",
+    "typo3/cms-backend": "^7.6",
+    "typo3/cms-belog": "^7.6",
+    "typo3/cms-beuser": "^7.6",
+    "typo3/cms-context-help": "^7.6",
+    "typo3/cms-cshmanual": "^7.6",
+    "typo3/cms-css-styled-content": "^7.6",
+    "typo3/cms-filelist": "^7.6",
+    "typo3/cms-frontend": "^7.6",
+    "typo3/cms-impexp": "^7.6",
+    "typo3/cms-install": "^7.6",
+    "typo3/cms-lowlevel": "^7.6",
+    "typo3/cms-opendocs": "^7.6",
+    "typo3/cms-recordlist": "^7.6",
+    "typo3/cms-reports": "^7.6",
+    "typo3/cms-scheduler": "^7.6",
+    "typo3/cms-tstemplate": "^7.6",
+    "typo3/cms-viewpage": "^7.6",
+    "symfony/process": "~2.7.0",
+    "helhum/typo3-console": "^4.0.0",
+    "typo3-ter/tt-address": "^3.0.0",
+    "typo3-ter/static-info-tables": "^6.3.0",
+    "typo3-ter/sourceopt": "^0.9.0",
+    "dmitryd/typo3-realurl": "dev-master#8cf1668af7b1fd21581606398aef95992bbbe6a0",
+    "appzap/migrator": "dev-develop#1da2ec4"
+  },
+  "extra": {
+    "helhum/typo3-console": {
+      "install-extension-dummy": false
+    },
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": "web"
+    }
+  },
+  "scripts": {
+    "folder-structure": [
+      "test -f ./typo3cms && ./typo3cms install:fixfolderstructure"
+    ],
+    "package-states": [
+      "test -f ./typo3cms && ./typo3cms install:generatepackagestates"
+    ],
+    "post-autoload-dump": [
+      "@folder-structure",
+      "@package-states"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "Etobi\\MyCustomExtension\\": "typo3conf/ext/my_custom_extension/Classes/"
+    }
+  },
+  "config": {
+    "bin-dir": "."
+  }
+}
