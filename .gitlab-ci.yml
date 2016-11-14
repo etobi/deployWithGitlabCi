@@ -111,4 +111,15 @@ deploy to testing:
     name: testing
     url: https://testing.example.com
 
+debug:
+  <<: *deploy_template
+  only:
+    - develop
+  when: on_success
+  variables:
+    TARGETHOST: "tobias@wolke.etobi.de"
+    TARGETBASEPATH: "/home/tobias/tmp/debug.example.com/"
+  environment:
+    name: debug/wolke
+    url: https://deployWithGitlabCi.wolke.etobi.de/
 
