@@ -116,7 +116,7 @@ deploy to testing:
 debug:
   <<: *deploy_template
   only:
-    - develop
+    - master
   when: on_success
   variables:
     TARGETHOST: "tobias@wolke.etobi.de"
