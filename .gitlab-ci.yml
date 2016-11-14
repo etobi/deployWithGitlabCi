@@ -16,6 +16,11 @@ before_script:
   - mkdir -p ~/.ssh
   - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 
+  # prepare folder
+  - mkdir -p shared/fileadmin
+  - mkdir -p shared/typo3temp
+  - mkdir -p shared/uploads
+
 build:
   stage: build
   only:
@@ -39,10 +44,6 @@ build:
     - export TARGETPATH="${TARGETBASEPATH}release/"
     - echo "Host    " $TARGETHOST
     - echo "Path    " $TARGETPATH
-    # prepare
-    - mkdir -p shared/fileadmin
-    - mkdir -p shared/typo3temp
-    - mkdir -p shared/uploads
     # install deps with composer
     - ./Build/bin/composer.phar install --no-ansi --no-progress --no-dev
     - date > VERSION
