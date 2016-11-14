@@ -67,6 +67,9 @@ build:
       --exclude=.settings
       ./ $TARGETHOST:$TARGETPATH
     # finish build on target
+    - ssh $TARGETHOST "mkdir -p ${TARGETBASEPATH}shared/fileadmin"
+    - ssh $TARGETHOST "mkdir -p ${TARGETBASEPATH}shared/typo3temp"
+    - ssh $TARGETHOST "mkdir -p ${TARGETBASEPATH}shared/uploads"
     - ssh $TARGETHOST "cd ${TARGETPATH}; test -L fileadmin || ln -s ${TARGETBASEPATH}shared/fileadmin"
     - ssh $TARGETHOST "cd ${TARGETPATH}; test -L typo3temp || ln -s ${TARGETBASEPATH}shared/typo3temp"
     - ssh $TARGETHOST "cd ${TARGETPATH}; test -L uploads || ln -s ${TARGETBASEPATH}shared/uploads"
