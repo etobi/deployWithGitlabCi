@@ -119,9 +119,9 @@ debug:
     - master
   when: on_success
   variables:
-    TARGETHOST: "tobias@wolke.etobi.de"
-    TARGETBASEPATH: "/home/tobias/tmp/debug.example.com/"
+    TARGETHOST: "etobi@apus.uberspace.de"
+    TARGETBASEPATH: "/home/etobi/html/deploywithgitlabci.etobi.de/"
   environment:
-    name: debug/wolke
-    url: https://deployWithGitlabCi.wolke.etobi.de/
+    name: debug
+    url: https://deploywithgitlabci.etobi.de/
 
