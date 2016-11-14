@@ -39,7 +39,10 @@ build:
     - export TARGETPATH="${TARGETBASEPATH}release/"
     - echo "Host    " $TARGETHOST
     - echo "Path    " $TARGETPATH
-    - echo "prepare ... "
+    # prepare
+    - mkdir -p shared/fileadmin
+    - mkdir -p shared/typo3temp
+    - mkdir -p shared/uploads
     # install deps with composer
     - ./Build/bin/composer.phar install --no-ansi --no-progress --no-dev
     - date > VERSION
@@ -56,18 +59,16 @@ build:
     # sync files
     - rsync -azv -e "ssh" --delete
       --exclude=/composer.*
-      --exclude=/fileadmin
-      --exclude=/typo3temp
-      --exclude=/uploads
+      --exclude=/shared
       --exclude=/Build
       --exclude=/README.md
       --exclude=/.ssh
       --exclude=.settings
       ./ $TARGETHOST:$TARGETPATH
     # finish build on target
-    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L fileadmin || ln -s ${TARGETBASEPATH}fileadmin"
-    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L typo3temp || ln -s ${TARGETBASEPATH}typo3temp"
-    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L uploads || ln -s ${TARGETBASEPATH}uploads"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L fileadmin || ln -s ${TARGETBASEPATH}shared/fileadmin"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L typo3temp || ln -s ${TARGETBASEPATH}shared/typo3temp"
+    - ssh $TARGETHOST "cd ${TARGETPATH}; test -L uploads || ln -s ${TARGETBASEPATH}shared/uploads"
     - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms install:fixfolderstructure"
     - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms cache:flush --force"
     - ssh $TARGETHOST "cd ${TARGETPATH}; ./typo3cms database:updateschema '*.add,*.change' --verbose"
